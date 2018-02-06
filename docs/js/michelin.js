@@ -11,9 +11,9 @@ function get(){
             var $ = cheerio.load(html);
             var title;
             var json = { title: "" };
-            $('.poi-search-result').filter(function () {
+            $('.poi_card-display-title').filter(function () {
                 var data = $(this);
-                title = data.children().text();
+                title = data.text();
                 console.log(title);
                 json.title = title;
             })
