@@ -1,73 +1,143 @@
-//var express = require('express');
 var fs = require('fs');
 var request = require('request');
 var cheerio = require('cheerio');
-//var app = express();
-//app.get('/scrape', function (req, res) {
-function get(){
-    url = 'https://restaurant.michelin.fr/restaurants/france/restaurants-1-etoile-michelin/restaurants-2-etoiles-michelin/restaurants-3-etoiles-michelin';
+
+//Find the total number of pages
+function get_number_pages(url, callback) {
     request(url, function (error, response, html) {
         if (!error) {
             var $ = cheerio.load(html);
-            var title;
-            var json = { title: "" };
-            $('.poi_card-display-title').filter(function () {
-                var data = $(this);
-                title = data.text();
-                console.log(title);
-                json.title = title;
-            })
-            /*fs.writeFile('output.json', JSON.stringify(json, null, 4), function (err) {
+            var number = $('.mr-pager-item').eq(-4).text();
+            callback(number);
+        }
+    });
+}
 
-                console.log('File successfully written! - Check your project directory for the output.json file');
+//Find urls of restaurants on ONE page (not the 615 restaurants only the 18 restaurants on the current page)
+function get_urls_in_resultpage(url, callback) {
+    var urls_array = [];
+    request(url, function (error, response, html) {
+        if (!error) {
+            var $ = cheerio.load(html);
+            $('a[class=poi-card-link]').each(function (i, element) {
+                urls_array.push('https://restaurant.michelin.fr' + $(element).attr('href'));
+            });
+            callback(urls_array);
+        }
+    });
+}
 
+//Get informations about ONE restaurant
+function get_page(url, callback) {
+    request(url, function (error, response, html) {
+        if (!error) {
+            var $ = cheerio.load(html);
+            var title = $('.poi_intro-display-title').first().text();
+            var adress = $('.thoroughfare').first().text();
+            var zipcode = $('.postal-code').first().text();
+            var city = $('.locality').first().text();
+            var description = $('.poi_intro-display-cuisines, .opt-upper__cuisines-info').first().text();
+            var chef = $('.field--name-field-chef').children('.field__items').children('.field__item').first().text()
+
+            var restaurant = {
+                "title": enleverEspace(title),
+                "address": adress,
+                "zipcode": zipcode,
+                "city": city,
+                "description": enleverEspace(description),
+                "chef": chef,
+                "url": url
+            };
+            callback(restaurant);
+        }
+    });
+}
+
+function get() {
+    var url = 'https://restaurant.michelin.fr/restaurants/france/restaurants-1-etoile-michelin/restaurants-2-etoiles-michelin/restaurants-3-etoiles-michelin';
+    var json = { "starred_restaurants": []};
+    get_number_pages(url, function (number) {
+        for (let i = 1; i <= number; i++) {
+            if (i != 1) {
+                url = 'https://restaurant.michelin.fr/restaurants/france/restaurants-1-etoile-michelin/restaurants-2-etoiles-michelin/restaurants-3-etoiles-michelin/page-' + i;
+            }
+            get_urls_in_resultpage(url, function (urls_array) {
+                urls_array.forEach(function (element) {
+                    get_page(element, function (restaurant) {
+                        json.starred_restaurants.push(restaurant);
+                        fs.writeFile('output.json', JSON.stringify(json.starred_restaurants, null, 4), 'utf8', function (error) { });
+                    });
+                });
+            });
+        }
+    });
+}
+
+function enleverEspace(title) {
+    let newTitle = "";
+    let count = 0;
+    for (let i = 2; i < title.length; i++) {
+        if (title[i] != ' ') {
+            if (count == 1) {
+                newTitle += " ";
+            }
+            newTitle += title[i];
+            count = 0;
+        }
+        if (title[i] == ' ') {
+            count++;
+        }
+    }
+    return newTitle;
+}
+
+module.exports.get = get;
+
+
+/*request(url, function (error, response, html) {
+                if (!error) {
+                    var $ = cheerio.load(html);
+                    $('.poi-card-link').each(function () {
+                        var title, numberStars, postal_code, city;
+                        var json = { title: "", numberStars: "", postal_code: "", city: "" };
+                        //Titre
+                        title = $(this).children('.poi_card-details').children('.poi_card-description').children('.poi_card-display-title').text();
+                        title = enleverEspace(title);
+                        json.title = title;
+                        //Nombre d'étoile
+                        var classStars = $(this).children('.poi_card-picture').children('.poi_card-display-guide').children('.guide').children('span');
+                        var myString = title + " ; ";
+                        if (classStars.hasClass('icon-cotation1etoile')) {
+                            myString += "1 etoile\n";
+                            json.numberStars = 1;
+                        }
+                        else if (classStars.hasClass('icon-cotation2etoiles')) {
+                            myString += "2 etoiles\n";
+                            json.numberStars = 2;
+                        }
+                        else if (classStars.hasClass('icon-cotation3etoiles')) {
+                            myString += "3 etoiles\n";
+                            json.numberStars = 3;
+                        }
+                        //Href
+                        let href = 'https://restaurant.michelin.fr' + $(this).attr('href');
+                        //console.log(href + '\n');
+                        //New request
+                        var citi = "";
+                        var postalCode = "";
+                        request(href, function (error, response, html) {
+                            if (!error) {
+                                var $$ = cheerio.load(html);
+                                var postalCode = $$('.locality-block').first().children('.postal-code').text();
+                                var citi = $$('.locality-block').first().children('.locality').text();
+                                json.postal_code = postalCode;
+                                json.city = citi;
+                                //fs.appendFile('result.json', JSON.stringify(json, null, 4), function (err) { });
+                                bigArrayJson.push(json);
+                                return bigArrayJson;
+                            }
+                        })
+                        //fs.appendFile('result.json', JSON.stringify(json, null, 4), function (err) { });
+                    })
+                }
             })*/
-        }
-
-    })
-}
-//app.listen('8081');
-//console.log('Magic happens on port 8081');
-module.exports.get = get /*app*/;
-
-/*function get() {
-    const rp = require('request-promise');
-    var request = require('request');
-    const cheerio = require('cheerio');
-    url = 'https://restaurant.michelin.fr/restaurants/france/restaurants-1-etoile-michelin/restaurants-2-etoiles-michelin/restaurants-3-etoiles-michelin';
-    // The structure of our request call
-    // The first parameter is our URL
-    // The callback function takes 3 parameters, an error, response status code and the html
-    request(url, function (error, response, html) {
-        // First we'll check to make sure no errors occurred when making the request
-        console.log(html);
-        if (!error) {
-            // Next, we'll utilize the cheerio library on the returned html which will essentially give us jQuery functionality
-            var $ = cheerio.load(html);
-            console.log("je suis 2");
-            // Finally, we'll define the variables we're going to capture
-            var name, release, rating;
-            var json = { name: "" };
-            // We'll use the unique header class as a starting point.
-            $('.poi_card-display-title').filter(function () {
-                console.log("je suis 3");
-                // Let's store the data we filter into a variable so we can easily see what's going on.
-                var data = $(this);
-                // In examining the DOM we notice that the title rests within the first child element of the header tag. 
-                // Utilizing jQuery we can easily navigate and get the text by writing the following code:
-                title = data.children().first().text();
-                // We will repeat the same process as above.  This time we notice that the release is located within the last element.
-                // Writing this code will move us to the exact location of the release year.
-                release = data.children().last().children().text();
-                // Once we have our title, we'll store it to the our json object.
-                json.title = title;
-                // Once again, once we have the data extract it we'll save it to our json object
-                json.release = release;
-                console.log("je suis 4");
-            })
-            // Since the rating is in a different section of the DOM, we'll have to write a new jQuery filter to extract this information.
-        }
-
-    })
-}
-module.exports.get = get;*/
