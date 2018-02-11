@@ -37,6 +37,7 @@ function get_page(url, callback) {
             var zipcode = $('.postal-code').first().text();
             var city = $('.locality').first().text();
             var description = $('.poi_intro-display-cuisines, .opt-upper__cuisines-info').first().text();
+            var number_stars = $('.michelin-poi-distinctions-list').children('li').first().children('.content-wrapper').text()[0];
             var chef = $('.field--name-field-chef').children('.field__items').children('.field__item').first().text()
 
             var restaurant = {
@@ -45,6 +46,7 @@ function get_page(url, callback) {
                 "zipcode": zipcode,
                 "city": city,
                 "description": enleverEspace(description),
+                "stars":number_stars,
                 "chef": chef,
                 "url": url
             };
@@ -53,9 +55,25 @@ function get_page(url, callback) {
     });
 }
 
+/*function get_number_restaurants(callback) {
+    var url_base = 'https://restaurant.michelin.fr/restaurants/france/restaurants-1-etoile-michelin/restaurants-2-etoiles-michelin/restaurants-3-etoiles-michelin';
+    request(url_base, function (error, response, html) {
+        if (!error) {
+            var $ = cheerio.load(html);
+            var sentence = $('#block-ft-b2c-poi-search-ft-b2c-poi-search-title').children('.block__content').html();
+            //$(sentence).each(function () {
+                //console.log($(this));
+            //});
+            console.log(sentence);
+        }
+    });
+}*/
+
 function get() {
     var url = 'https://restaurant.michelin.fr/restaurants/france/restaurants-1-etoile-michelin/restaurants-2-etoiles-michelin/restaurants-3-etoiles-michelin';
-    var json = { "starred_restaurants": []};
+    var json = { "starred_restaurants": [] };
+    var count = 0;
+    var counter = 0;
     get_number_pages(url, function (number) {
         for (let i = 1; i <= number; i++) {
             if (i != 1) {
@@ -66,6 +84,7 @@ function get() {
                     get_page(element, function (restaurant) {
                         json.starred_restaurants.push(restaurant);
                         fs.writeFile('output.json', JSON.stringify(json.starred_restaurants, null, 4), 'utf8', function (error) { });
+                        get_number_restaurants(function (number_resto) { });
                     });
                 });
             });
@@ -92,6 +111,7 @@ function enleverEspace(title) {
 }
 
 module.exports.get = get;
+module.exports.get_number_restaurants = get_number_restaurants
 
 
 /*request(url, function (error, response, html) {
