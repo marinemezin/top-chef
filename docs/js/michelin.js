@@ -2,6 +2,8 @@ var fs = require('fs');
 var request = require('request');
 var cheerio = require('cheerio');
 
+var count = 0;
+
 //Find the total number of pages
 function get_number_pages(url, callback) {
     request(url, function (error, response, html) {
@@ -21,6 +23,7 @@ function get_urls_in_resultpage(url, callback) {
             var $ = cheerio.load(html);
             $('a[class=poi-card-link]').each(function (i, element) {
                 urls_array.push('https://restaurant.michelin.fr' + $(element).attr('href'));
+                count++;
             });
             callback(urls_array);
         }
@@ -57,6 +60,7 @@ function get_page(url, callback) {
 
 //Find the number of expected restaurant
 /*function get_number_restaurants(url) {
+    var count = 0;
     request(url, function (error, response, html) {
         if (!error) {
             var $ = cheerio.load(html);
@@ -68,6 +72,7 @@ function get_page(url, callback) {
                     get_urls_in_resultpage(url, function (urls_array) {
                         urls_array.forEach(function (element) {
                             count++;
+                            console.log(count);
                         });
                     });
                 }
@@ -79,6 +84,8 @@ function get_page(url, callback) {
 function get() {
     var url = 'https://restaurant.michelin.fr/restaurants/france/restaurants-1-etoile-michelin/restaurants-2-etoiles-michelin/restaurants-3-etoiles-michelin';
     var json = { "starred_restaurants": [] };
+    var counter = 0;
+    var array_result = new Array();
     get_number_pages(url, function (number) {
         for (let i = 1; i <= number; i++) {
             if (i != 1) {
@@ -88,13 +95,20 @@ function get() {
                 urls_array.forEach(function (element) {
                     get_page(element, function (restaurant) {
                         json.starred_restaurants.push(restaurant);
-                        fs.writeFile('output.json', JSON.stringify(json.starred_restaurants, null, 4), 'utf8', function (error) { });
+                        counter++;
+                        array_result.push(restaurant);
+                        if (counter <= count) {
+                            fs.writeFile('output.json', JSON.stringify(json.starred_restaurants, null, 4), 'utf8', function (error) { });
+                            //console.log(JSON.stringify(json.starred_restaurants, null, 4));
+                        }
                     });
                 });
             });
         }
     });
 }
+
+
 
 function enleverEspace(title) {
     let newTitle = "";
