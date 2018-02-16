@@ -15,6 +15,18 @@ function get_number_pages(url, callback) {
     });
 }
 
+
+function get_number_restaurants(url, callback) {
+    request(url, function (error, response, html) {
+        if (!error) {
+            var $ = cheerio.load(html);
+            var number_restaurants_1 = $('.pane-ft-b2c-poi-search-ft-b2c-poi-search-title').children('div').text();
+            var number_restaurants = number_restaurants_1.substr(97, 3);
+            callback(number_restaurants);
+        }
+    });
+}
+
 //Find urls of restaurants on ONE page (not the 615 restaurants only the 18 restaurants on the current page)
 function get_urls_in_resultpage(url, callback) {
     var urls_array = [];
@@ -23,7 +35,8 @@ function get_urls_in_resultpage(url, callback) {
             var $ = cheerio.load(html);
             $('a[class=poi-card-link]').each(function (i, element) {
                 urls_array.push('https://restaurant.michelin.fr' + $(element).attr('href'));
-                count++;
+                //count++;
+                //console.log(count);
             });
             callback(urls_array);
         }
@@ -58,53 +71,32 @@ function get_page(url, callback) {
     });
 }
 
-//Find the number of expected restaurant
-/*function get_number_restaurants(url) {
-    var count = 0;
-    request(url, function (error, response, html) {
-        if (!error) {
-            var $ = cheerio.load(html);
-            get_number_pages(url, function (number) {
-                for (let i = 1; i <= number; i++) {
-                    if (i != 1) {
-                        url = 'https://restaurant.michelin.fr/restaurants/france/restaurants-1-etoile-michelin/restaurants-2-etoiles-michelin/restaurants-3-etoiles-michelin/page-' + i;
-                    }
-                    get_urls_in_resultpage(url, function (urls_array) {
-                        urls_array.forEach(function (element) {
-                            count++;
-                            console.log(count);
-                        });
-                    });
-                }
-            });
-        }
-    });
-}*/
 
 function get() {
     var url = 'https://restaurant.michelin.fr/restaurants/france/restaurants-1-etoile-michelin/restaurants-2-etoiles-michelin/restaurants-3-etoiles-michelin';
     var json = { "starred_restaurants": [] };
     var counter = 0;
-    var array_result = new Array();
-    get_number_pages(url, function (number) {
-        for (let i = 1; i <= number; i++) {
-            if (i != 1) {
-                url = 'https://restaurant.michelin.fr/restaurants/france/restaurants-1-etoile-michelin/restaurants-2-etoiles-michelin/restaurants-3-etoiles-michelin/page-' + i;
-            }
-            get_urls_in_resultpage(url, function (urls_array) {
-                urls_array.forEach(function (element) {
-                    get_page(element, function (restaurant) {
-                        json.starred_restaurants.push(restaurant);
-                        counter++;
-                        array_result.push(restaurant);
-                        if (counter <= count) {
-                            fs.writeFile('output.json', JSON.stringify(json.starred_restaurants, null, 4), 'utf8', function (error) { });
-                            //console.log(JSON.stringify(json.starred_restaurants, null, 4));
-                        }
+    get_number_restaurants(url, function (number_rest) {
+        var number_restaurants = number_rest;
+        get_number_pages(url, function (number) {
+            for (let i = 1; i <= number; i++) {
+                if (i != 1) {
+                    url = 'https://restaurant.michelin.fr/restaurants/france/restaurants-1-etoile-michelin/restaurants-2-etoiles-michelin/restaurants-3-etoiles-michelin/page-' + i;
+                }
+                get_urls_in_resultpage(url, function (urls_array) {
+                    urls_array.forEach(function (element) {
+                        get_page(element, function (restaurant) {
+                            json.starred_restaurants.push(restaurant);
+                            counter++;
+                            //if (counter == number_restaurants) {
+                                //console.log("yeah");
+                                fs.writeFile('output.json', JSON.stringify(json.starred_restaurants, null, 4), 'utf8', function (error) { });
+                            //}
+                        });
                     });
                 });
-            });
-        }
+            }
+        });
     });
 }
 
@@ -129,52 +121,3 @@ function enleverEspace(title) {
 }
 
 module.exports.get = get;
-
-
-/*request(url, function (error, response, html) {
-                if (!error) {
-                    var $ = cheerio.load(html);
-                    $('.poi-card-link').each(function () {
-                        var title, numberStars, postal_code, city;
-                        var json = { title: "", numberStars: "", postal_code: "", city: "" };
-                        //Titre
-                        title = $(this).children('.poi_card-details').children('.poi_card-description').children('.poi_card-display-title').text();
-                        title = enleverEspace(title);
-                        json.title = title;
-                        //Nombre d'étoile
-                        var classStars = $(this).children('.poi_card-picture').children('.poi_card-display-guide').children('.guide').children('span');
-                        var myString = title + " ; ";
-                        if (classStars.hasClass('icon-cotation1etoile')) {
-                            myString += "1 etoile\n";
-                            json.numberStars = 1;
-                        }
-                        else if (classStars.hasClass('icon-cotation2etoiles')) {
-                            myString += "2 etoiles\n";
-                            json.numberStars = 2;
-                        }
-                        else if (classStars.hasClass('icon-cotation3etoiles')) {
-                            myString += "3 etoiles\n";
-                            json.numberStars = 3;
-                        }
-                        //Href
-                        let href = 'https://restaurant.michelin.fr' + $(this).attr('href');
-                        //console.log(href + '\n');
-                        //New request
-                        var citi = "";
-                        var postalCode = "";
-                        request(href, function (error, response, html) {
-                            if (!error) {
-                                var $$ = cheerio.load(html);
-                                var postalCode = $$('.locality-block').first().children('.postal-code').text();
-                                var citi = $$('.locality-block').first().children('.locality').text();
-                                json.postal_code = postalCode;
-                                json.city = citi;
-                                //fs.appendFile('result.json', JSON.stringify(json, null, 4), function (err) { });
-                                bigArrayJson.push(json);
-                                return bigArrayJson;
-                            }
-                        })
-                        //fs.appendFile('result.json', JSON.stringify(json, null, 4), function (err) { });
-                    })
-                }
-            })*/
