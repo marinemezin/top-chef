@@ -116,35 +116,6 @@ function getDeal() {
             }
         });
     }
-
-    /*
-    0->false
-    1->true
-    2->true
-    3->true
-    4->false
-    5->true
-    6->true
-    7->true
-    8->true
-    9->true
-    10->true
-    */
-
-    /*var title = datas[3].title;
-    var url_new = url + transformURL(title);
-    //var url_new = 'https://www.lafourchette.com/search-refine/Le%20P%C3%AAch%C3%A9%20Gourmand';
-    console.log(url_new);
-    console.log(url + title);
-    isUrlExisting(url_new, function (result) {
-        console.log(result);
-        if (result) {
-            console.log("yeaaah");
-        }
-        else {
-            console.log("URL doesn't exist");
-        }
-    });*/
 }
 
 module.exports.getDeal = getDeal;
