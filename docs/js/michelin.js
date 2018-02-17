@@ -79,7 +79,7 @@ function get() {
     get_number_restaurants(url, function (number_rest) {
         var number_restaurants = number_rest;
         get_number_pages(url, function (number) {
-            for (let i = 1; i <= number; i++) {
+            for (var i = 1; i <= number; i++) {
                 if (i != 1) {
                     url = 'https://restaurant.michelin.fr/restaurants/france/restaurants-1-etoile-michelin/restaurants-2-etoiles-michelin/restaurants-3-etoiles-michelin/page-' + i;
                 }
@@ -88,10 +88,10 @@ function get() {
                         get_page(element, function (restaurant) {
                             json.starred_restaurants.push(restaurant);
                             counter++;
-                            //if (counter == number_restaurants) {
-                                //console.log("yeah");
+                            if (counter == number_restaurants) {
+                                console.log("yeah");
                                 fs.writeFile('output.json', JSON.stringify(json.starred_restaurants, null, 4), 'utf8', function (error) { });
-                            //}
+                            }
                         });
                     });
                 });
@@ -103,9 +103,9 @@ function get() {
 
 
 function enleverEspace(title) {
-    let newTitle = "";
-    let count = 0;
-    for (let i = 2; i < title.length; i++) {
+    var newTitle = "";
+    var count = 0;
+    for (var i = 2; i < title.length; i++) {
         if (title[i] != ' ') {
             if (count == 1) {
                 newTitle += " ";
