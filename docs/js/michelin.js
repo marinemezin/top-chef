@@ -64,7 +64,8 @@ function get_page(url, callback) {
                 "description": enleverEspace(description),
                 "stars":number_stars,
                 "chef": chef,
-                "url": url
+                "url": url,
+                "promo": []
             };
             callback(restaurant);
         }

@@ -69,73 +69,6 @@ function transformURL(chain) {
     return result;
 }
 
-/*function isUrlExisting(url, callback) {
-    request(url, function (error, response, html) {
-        if (!error) {
-            var $ = cheerio.load(html);
-            var result = $('.noResultHeader-title').text();
-            if ((result == "") && ($('h1').text() == "400 Bad request")) {
-                //console.log("if");
-                callback(false);
-            }
-            else if (result == "") {
-                //console.log("else if");
-                callback(true);
-            }
-            else {
-                //console.log("else");
-                callback(false);
-            }
-        }
-        else {
-            callback(false);
-        }
-    });
-};
-
-function get_url_restaurants(url, callback) {
-    console.log(url);
-    request(url, function (error, response, html) {
-        if (!error) {
-            var realURL = "";
-            var $ = cheerio.load(html);
-            $('.resultItem').each(function () {
-                //tester si on a correspondance avec le code postal
-                if (/*on a trouvé le bon item/true){
-                    var address = 'https://www.lafourchette.com';
-                    address += $(this).children('.resultItem-information').children().children().attr('href');
-                    callback(address);
-                }
-            });
-            callback(realURL);
-        }
-    });
-}
-
-function getDeal() {
-    var jsonData = fs.readFileSync('output.json', "utf8");
-    var datas = JSON.parse(jsonData);
-    var count = 0;
-    var number = 0;
-    var url = 'https://www.lafourchette.com/search-refine/';
-    for (var i = 0; i < /*datas.length/2; i++) {
-        var url_new = url + transformURL(datas[i].title);
-        number++;
-        isUrlExisting(url_new, function (result) {
-            if (result == true) { //407 pages chargent
-                get_url_restaurants(url_new, function (realURL) {
-                    if (realURL != "") {
-                        //on a trouvé le bon URL
-                        //trouver les promotions
-                        count++;
-                        console.log(count);
-                    }
-                });
-            }
-        });
-    }
-}*/
-
 
 var get_a_data = function (i, datas) {
     return Promise.resolve(datas[i]);
@@ -146,7 +79,14 @@ var isUrlExisting = function (data) {
     var url_new = url + transformURL(data.title);
     return new Promise(
         function (resolve, reject) {
-            request(url_new, function (error, response, html) {
+            var options = {
+                url: url_new,
+                headers: {
+                    'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.168 Safari/537.36',
+                    'Cookies': 'AHrlqAAAAAMAlcG5qzKVYy4ALtotww=='
+                }
+            };
+            request(options, function (error, response, html) {
                 var reason = new Error("URL doesn't exist");
                 if (!error) {
                     var $ = cheerio.load(html);
@@ -200,7 +140,14 @@ var get_right_url = function (data) {
     var url_new = url + transformURL(data.title);
     return new Promise(
         function (resolve, reject) {
-            request(url_new, function (error, response, html) {
+            var options = {
+                url: url_new,
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.168 Safari/537.36',
+                    'Cookies': 'AHrlqAAAAAMAlcG5qzKVYy4ALtotww=='
+                }
+            };
+            request(options, function (error, response, html) {
                 var reason = new Error("No corresponding restaurant");
                 if (!error) {
                     var realURL = "";
@@ -223,6 +170,33 @@ var get_right_url = function (data) {
         });
 };
 
+var get_promotion = function (data) {
+    return new Promise(
+        function (resolve, reject) {
+            var options = {
+                url: data.url,
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.168 Safari/537.36',
+                    'Cookies': 'AHrlqAAAAAMAlcG5qzKVYy4ALtotww=='
+                }
+            };
+            request(options, function (error, response, html) {
+                var reason = new Error("No corresponding restaurant");
+                if (!error) {
+                    var $ = cheerio.load(html);
+                    var result = $('.saleTypeTitle--specialOffer').children('span').text();
+                    console.log(result);
+                    if (result == "Promotions") {
+                        //je cherche le text qui dit qu'il y a promo
+                        //data.promo.push(montext);
+                        resolve(data);
+                    }
+                    reject(reason);
+                }
+            });
+        });
+};
+
 function getDeal() {
     var jsonData = fs.readFileSync('output.json', "utf8");
     var datas = JSON.parse(jsonData);
@@ -235,7 +209,8 @@ function getDeal() {
         get_a_data(i, datas)
             .then(isUrlExisting)
             .then(get_right_url)
-            //.then trouver les promotions
+            .then(get_promotion)
+            //.then réenregistrer la data dans le file pour pas la perdre
             .then(function (fulfilled) {
                 //console.log(fulfilled.title);
                 countok++;
@@ -248,24 +223,6 @@ function getDeal() {
 }
 
 module.exports.getDeal = getDeal;
-
-
-/*var testingFullPage = function () {
-    var url = 'https://www.lafourchette.com/search-refine/Agap%C3%A9';
-    isUrlExisting(url)
-        .then(goInsidePage)
-        .then(function (fullfilled) {
-            console.log(fullfilled);
-        })
-        .catch(function (error) {
-            console.log(error.message);
-        });
-};*/
-
-
-/*function getDeal2() {
-    testingFullPage();
-}*/
 
 //https://scotch.io/tutorials/javascript-promises-for-dummies
 
