@@ -156,8 +156,9 @@ var get_right_url = function (data) {
                         var address = $(this).children('.resultItem-information').children('.resultItem-address').text();
                         address = enleverEspace(address);
                         var zipcode = findZipcodeFR(address);
-                        //console.log(zipcode + ":" + data.zipcode + ":" + data.title);
+                        console.log(zipcode + ":" + data.zipcode + ":" + data.title);
                         if (zipcode == data.zipcode) {
+                            console.log("zipcode ok");
                             var otherUrl = 'https://www.lafourchette.com';
                             otherUrl += $(this).children('.resultItem-information').children().children().attr('href');
                             data.url = otherUrl;
@@ -207,9 +208,9 @@ function getDeal() {
         var url_new = url + transformURL(datas[i].title);
         number++;
         get_a_data(i, datas)
-            .then(isUrlExisting)
+            .then(isUrlExisting) //404 here
             .then(get_right_url)
-            .then(get_promotion)
+            //.then(get_promotion)
             //.then réenregistrer la data dans le file pour pas la perdre
             .then(function (fulfilled) {
                 //console.log(fulfilled.title);
