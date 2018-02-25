@@ -12,7 +12,8 @@
     "cheerio": "^1.0.0-rc.2",
     "express": "latest",
     "jsonfile": "^4.0.0",
-    "request": "latest",
+    "request": "^2.83.0",
     "request-promise": "^4.2.2"
-  }
+  },
+  "keywords": []
 }

@@ -65,7 +65,8 @@ function get_page(url, callback) {
                 "stars":number_stars,
                 "chef": chef,
                 "url": url,
-                "promo": []
+                "promo": "",
+                "conditions_reductions" : ""
             };
             callback(restaurant);
         }
@@ -90,7 +91,6 @@ function get() {
                             json.starred_restaurants.push(restaurant);
                             counter++;
                             if (counter == number_restaurants) {
-                                console.log("yeah");
                                 fs.writeFile('output.json', JSON.stringify(json.starred_restaurants, null, 4), 'utf8', function (error) { });
                             }
                         });
