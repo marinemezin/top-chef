@@ -92,11 +92,9 @@ var isUrlExisting = function (data) {
                     var $ = cheerio.load(html);
                     var result = $('.noResultHeader-title').text();
                     if ((result == "") && ($('h1').text() == "400 Bad request")) {
-                        //console.log("if");
                         reject(reason);
                     }
                     else if (result == "") {
-                        //console.log("else if");
                         resolve(data);
                     }
                     else {
@@ -134,40 +132,6 @@ function findZipcodeFR(address) {
     }
     return null;
 }
-
-var get_right_url = function (data) {
-    var url = 'https://www.lafourchette.com/search-refine/';
-    var url_new = url + transformURL(data.title);
-    return new Promise(
-        function (resolve, reject) {
-            var options = {
-                url: url_new,
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.168 Safari/537.36',
-                    'Cookies': 'AHrlqAAAAAMAlcG5qzKVYy4ALtotww=='
-                }
-            };
-            request(options, function (error, response, html) {
-                var reason = new Error("No corresponding restaurant");
-                if (!error) {
-                    var realURL = "";
-                    var $ = cheerio.load(html);
-                    $('.resultItem').each(function () {
-                        var address = $(this).children('.resultItem-information').children('.resultItem-address').text();
-                        address = enleverEspace(address);
-                        var zipcode = findZipcodeFR(address);
-                        if (zipcode == data.zipcode) {
-                            var otherUrl = 'https://www.lafourchette.com';
-                            otherUrl += $(this).children('.resultItem-information').children().children().attr('href');
-                            data.url = otherUrl;
-                            resolve(data);
-                        }
-                    });
-                    reject(reason);
-                }
-            });
-        });
-};
 
 var get_right_url = function (data) {
     var url = 'https://www.lafourchette.com/search-refine/';
@@ -259,8 +223,3 @@ function getDeal() {
 }
 
 module.exports.getDeal = getDeal;
-
-//https://scotch.io/tutorials/javascript-promises-for-dummies
-
-//http://www.tamasoft.co.jp/en/general-info/unicode-decimal.html
-//https://www.w3schools.com/tags/ref_urlencode.asp
