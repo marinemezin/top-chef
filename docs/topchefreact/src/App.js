@@ -5,17 +5,6 @@ import data from './lafourchette.json';
 
 class App extends Component {
   render() {
-	/*var datas = exporterJson.getDatas();
-	const listRestaurant = datas.map( (data) => {
-		return (
-			<li key = { data.title } className = 'restaurant' >
-				<h3>{ data.title }</h3>
-				{ data.description }
-				<h4> { data.promo } </h4>
-					{ data.conditions_reductions}
-			</li>
-		)
-	})*/
     return (
       <div className="App">
         <header className="App-header">
