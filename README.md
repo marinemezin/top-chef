@@ -6,6 +6,7 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
+- [Commands](#commands)
 - [Introduction](#introduction)
 - [Objective - Workshop in 1 sentence](#objective---workshop-in-1-sentence)
 - [How to do that?](#how-to-do-that)
@@ -25,6 +26,14 @@
 - [Licence](#licence)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## Commands
+
+1) Go into the folder topchefreact in the project :
+cd C:\Users\mezin\source\repos\top-chef\docs\topchefreact
+
+2) Write this command and the webpage with promotions should open immediatly :
+npm start
 
 ## Introduction
 
